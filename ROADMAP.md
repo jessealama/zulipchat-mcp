@@ -1,6 +1,6 @@
 # Roadmap
 
-## v0.6.2 (Current)
+## v0.7.0 (Current)
 
 Released 2026-02-22 - [PyPI](https://pypi.org/project/zulipchat-mcp/)
 

@@ -4,6 +4,31 @@ All notable changes to ZulipChat MCP are documented in this file.
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-05-01
+
+### Added
+- **Agent control plane** for session-scoped Claude Code workflows. New core tool `ensure_agent_session` and extended tools `list_sessions`, `close_agent_session`, backed by a stable agent profile registered via the rebuilt `register_agent`.
+- **Claude Code plugin** at `integrations/claude-code/plugin/` with `.claude-plugin/plugin.json`, hook bridge, three skills (`zulipchat-session-operator`, `zulipchat-notifyme`, `zulipchat-loop`), and the `zulip-session-operator` subagent.
+- **Standalone `.claude/` template** at `integrations/claude-code/.claude/` for users who want to vendor the integration into their own repo without the plugin format.
+- **`zulipchat-mcp-hook` CLI** that bridges Claude Code lifecycle events (`SessionStart`, `PermissionRequest`, `PostToolUseFailure`, `Notification idle_prompt`, `StopFailure`, `TaskCompleted`, `SessionEnd`) into the bound Zulip topic.
+- **`zulipchat-mcp-integrate export --client claude-code`** subcommand to generate the plugin or standalone scaffold into a target directory, with bot-config and extended-tools modes.
+- DuckDB tables `agent_profiles`, `agent_sessions`, `agent_requests`, `session_events`. Migration is additive; existing tables and rows are untouched.
+
+### Changed
+- `register_agent` now accepts optional `agent_name`, `owner_email`, `stream_name`, `topic_prefix`, `metadata` keyword arguments. Existing calls without arguments still work. The return shape is new: `agent_id`, `agent_name`, `agent_type`, `owner_email`, `stream`, `topic_prefix`.
+- `agent_message`, `request_user_input`, and `wait_for_response` now operate session-scoped against the topic bound by `ensure_agent_session`. The previous channel-broadcast behavior is replaced.
+- Hook commands in the Claude Code plugin invoke `uvx --from zulipchat-mcp zulipchat-mcp-hook` so the bridge resolves whether the package is installed persistently or run ephemerally.
+- Setup wizard command corrected to `uvx --from zulipchat-mcp zulipchat-mcp-setup` across README, troubleshooting, installation, quick-start, and setup-wizard docs. (PR #9, credit: @odurif0)
+
+### Removed
+- AFK mode tools `enable_afk_mode`, `disable_afk_mode`, `get_afk_status`, and the merged `afk_mode` tool. The session model (`ensure_agent_session` plus `close_agent_session`) replaces them.
+
+### Upgrading from 0.6.x
+- DuckDB schema upgrade runs automatically on first start of v0.7.0. No manual migration is required.
+- Scripts that called the AFK tools must be updated to the session model.
+- Scripts that parsed the previous `register_agent` return keys must read from the new keys (`agent_id`, `stream`, `topic_prefix`).
+- For the new Claude Code plugin, install via Claude Code's plugin command and ensure `~/.zuliprc` (and optionally `~/.zuliprc-bot`) exist. Hooks call `uvx --from zulipchat-mcp zulipchat-mcp-hook`, so no global package install is required.
+
 ## [0.6.2] - 2026-03-03
 
 ### Fixed
