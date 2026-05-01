@@ -32,7 +32,7 @@ Need a zuliprc? **Zulip Settings > Personal > Account & privacy > API key** — 
 Interactive onboarding:
 
 ```bash
-uvx zulipchat-mcp-setup
+uvx --from zulipchat-mcp zulipchat-mcp-setup
 ```
 
 ## What This Does
@@ -44,24 +44,26 @@ ZulipChat MCP bridges any MCP-compatible AI assistant (Claude Code, Gemini CLI, 
 - **Resolve people by name** — "message Jaime" just works, no hunting for formal emails
 - **Switch identities** — post as yourself or as a bot, in the same session
 - **Monitor activity** — search recent messages, get stream info, check who's online
+- **Bind sessions to Zulip topics** — give long-running agent sessions a stable control topic
+- **Request approvals in-topic** — owner replies with `approve` / `deny` in the session topic
 
 ## Two-Tier Tool Architecture
 
-v0.6.0 introduced a deliberate split: **19 core tools** by default, **~55 tools** when you need more.
+v0.6.0 introduced a deliberate split: **20 core tools** by default, **56 tools** when you need more.
 
 ### Core Mode (default)
 
-The 19 tools that cover 95% of daily use:
+The 20 tools that cover most daily use:
 
 | Category | Tools |
 |----------|-------|
 | **Messaging** | `send_message`, `edit_message`, `get_message`, `add_reaction` |
 | **Search** | `search_messages`, `get_streams`, `get_stream_info`, `get_stream_topics` |
 | **Users** | `resolve_user`, `get_users`, `get_own_user` |
-| **Agent Comms** | `teleport_chat`, `register_agent`, `agent_message`, `request_user_input`, `wait_for_response` |
+| **Agent Comms** | `teleport_chat`, `register_agent`, `ensure_agent_session`, `agent_message`, `request_user_input`, `wait_for_response` |
 | **System** | `switch_identity`, `server_info`, `manage_message_flags` |
 
-Why 19 instead of 55+? Fewer tools means faster tool selection, lower token overhead, and less confusion for the AI. Most tasks — sending messages, searching, reacting — only need the core set.
+Why 20 instead of 56? Fewer tools means faster tool selection, lower token overhead, and less confusion for the AI. Most tasks — sending messages, searching, reacting, and binding an agent session to Zulip — only need the core set.
 
 ### Extended Mode
 
@@ -91,6 +93,23 @@ claude mcp add zulipchat -- uvx zulipchat-mcp --zulip-config-file ~/.zuliprc
 With dual identity (you + a bot):
 ```bash
 claude mcp add zulipchat -- uvx zulipchat-mcp \
+  --zulip-config-file ~/.zuliprc \
+  --zulip-bot-config-file ~/.zuliprc-bot
+```
+
+Optional Claude hook bridge for lifecycle and approval routing:
+```bash
+uvx zulipchat-mcp-hook \
+  --zulip-config-file ~/.zuliprc \
+  --zulip-bot-config-file ~/.zuliprc-bot
+```
+
+Optional Claude package export for project-local hooks, skills, and subagents:
+```bash
+uvx zulipchat-mcp-integrate export \
+  --client claude-code \
+  --mode standalone \
+  --output-dir . \
   --zulip-config-file ~/.zuliprc \
   --zulip-bot-config-file ~/.zuliprc-bot
 ```
@@ -199,12 +218,12 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide, and [CLAUDE.md](CLAUD
 src/zulipchat_mcp/
 ├── core/           # Client wrapper, identity, caching, security
 ├── tools/          # MCP tool implementations (two-tier registration)
-├── services/       # Background listener, AFK watcher
+├── services/       # Background listener and session event routing
 ├── utils/          # Logging, DuckDB persistence, metrics
 └── config.py       # config loading (zuliprc + environment fallback)
 ```
 
-Built on [FastMCP](https://github.com/jlowin/fastmcp) with async-first design, [DuckDB](https://duckdb.org) for agent state persistence, and smart user/stream caching for fast fuzzy resolution.
+Built on [FastMCP](https://github.com/PrefectHQ/fastmcp) with async-first design, [DuckDB](https://duckdb.org) for agent state persistence, and smart user/stream caching for fast fuzzy resolution.
 
 ## Privacy
 

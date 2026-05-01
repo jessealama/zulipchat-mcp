@@ -206,11 +206,13 @@ Invalid emoji (e.g., `thumbsup` without underscore) will fail at runtime. See `s
 
 ### Agent-to-User Bidirectional Communication
 Complete implementation exists at `src/zulipchat_mcp/tools/agents.py`:
-- Agents can send messages: `agent_message(content, require_response=True)`
-- Agents can request input: `request_user_input(question, options)`
+- Agents can register stable profiles: `register_agent(agent_name, agent_type)`
+- Agents can bind sessions to topics: `ensure_agent_session(agent_id, ...)`
+- Agents can send messages: `agent_message(session_id, content, category=...)`
+- Agents can request input: `request_user_input(session_id, question, options)`
 - Agents can wait for responses: `wait_for_response(request_id)`
 - Background MessageListener processes Zulip replies automatically
-- AFK mode gates notifications unless `ZULIP_DEV_NOTIFY=1` override set
+- Claude Code lifecycle hooks can be bridged via `zulipchat-mcp-hook`
 
 ### Command Chains (execute_chain)
 Workflow automation with context passing between operations:
@@ -305,4 +307,3 @@ This is a public open-source project. Follow these practices when handling commu
 - After publishing a release, comment on all issues fixed in that release.
 - Mention the version number, what was fixed, and how to upgrade.
 - Invite reporters to try the new version and provide feedback.
-

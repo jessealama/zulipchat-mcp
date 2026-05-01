@@ -1,6 +1,6 @@
 # Tool Categories
 
-## Core mode (19 tools)
+## Core mode (20 tools)
 
 ### Messaging and reactions (4)
 
@@ -22,10 +22,11 @@
 - `get_users`
 - `get_own_user`
 
-### Agent communication (5)
+### Agent communication (6)
 
 - `teleport_chat`
 - `register_agent`
+- `ensure_agent_session`
 - `agent_message`
 - `request_user_input`
 - `wait_for_response`
@@ -67,8 +68,9 @@
 
 ### Agent extensions
 
-- `send_agent_status`, `manage_task`, `list_instances`
-- `afk_mode`, `poll_agent_events`
+- `send_agent_status`, `manage_task`
+- `list_sessions`, `list_instances`, `close_agent_session`
+- `poll_agent_events`
 
 ### Files and topics
 
@@ -84,3 +86,4 @@
 
 - Keep common workflows on a compact default registry.
 - Move heavier or specialized operations to explicit extended mode.
+- Keep session binding and owner-controlled chat in core mode so agents can become Zulip-native communicators without enabling the full extended set.

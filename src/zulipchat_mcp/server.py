@@ -129,7 +129,14 @@ def main() -> None:
     # Initialize MCP with modern configuration
     mcp = FastMCP(
         "ZulipChat MCP",
+        version=__version__,
+        website_url="https://github.com/akougkas/zulipchat-mcp",
+        instructions=(
+            "Use ZulipChat MCP to bind coding agents to Zulip topics, send lifecycle "
+            "updates, request approvals, and read steering commands from the topic owner."
+        ),
         on_duplicate="warn",
+        tasks=True,
         sampling_handler=sampling_handler,
         sampling_handler_behavior="fallback",  # Use only when client doesn't support sampling
     )
@@ -167,12 +174,16 @@ def main() -> None:
     # --enable-listener; otherwise it lazy-starts on first agent tool call via ensure_listener().
     if service_manager_available:
         try:
-            svc = init_service_manager(config_manager, enable_listener=args.enable_listener)
+            svc = init_service_manager(
+                config_manager, enable_listener=args.enable_listener
+            )
             if args.enable_listener:
                 svc.start()
             logger.info(
                 "Background services %s",
-                "started (listener enabled)" if args.enable_listener else "ready (listener lazy)",
+                "started (listener enabled)"
+                if args.enable_listener
+                else "ready (listener lazy)",
             )
         except Exception as e:
             logger.warning(f"Could not initialize background services: {e}")

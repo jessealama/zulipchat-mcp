@@ -1,11 +1,10 @@
-"""Service manager for background services like message listener and AFK watcher."""
+"""Service manager for background services like the Zulip message listener."""
 
 from __future__ import annotations
 
 import asyncio
 import threading
 import time
-from datetime import datetime, timezone
 from typing import Any
 
 from ..config import ConfigManager
@@ -32,7 +31,7 @@ class ServiceManager:
         self._started = False
 
     def start(self) -> None:
-        """Start the service manager. Only starts listener/AFK watcher if enabled."""
+        """Start the service manager. Starts the listener lazily unless enabled."""
         if self._started:
             return
         try:
@@ -87,41 +86,22 @@ class ServiceManager:
         logger.info("Message listener stopped")
 
     def _start_watcher(self) -> None:
-        """Start the AFK watcher thread if not already running."""
+        """Start the listener supervisor thread if not already running."""
         if self._watcher_thread is not None:
             return
         self._watcher_thread = threading.Thread(
-            target=self._afk_watcher, name="afk-watcher", daemon=True
+            target=self._listener_watcher, name="listener-watcher", daemon=True
         )
         self._watcher_thread.start()
 
-    def _afk_watcher(self) -> None:
-        """Monitor AFK state and restart listener if it dies."""
+    def _listener_watcher(self) -> None:
+        """Restart the listener if it dies unexpectedly."""
         while True:
             try:
-                if not self.dbm:
-                    time.sleep(5)
-                    continue
-
-                state = self.dbm.get_afk_state() or {}
-                is_afk = bool(state.get("is_afk"))
-                auto_return_at = state.get("auto_return_at")
-
-                if is_afk and auto_return_at is not None:
-                    if isinstance(auto_return_at, datetime):
-                        now = datetime.now(timezone.utc)
-                        if auto_return_at.tzinfo is None:
-                            auto_return_at = auto_return_at.replace(tzinfo=timezone.utc)
-                        if now >= auto_return_at:
-                            self.dbm.set_afk_state(
-                                enabled=False, reason="Auto-returned from AFK"
-                            )
-                            logger.info("AFK auto-return triggered")
-
                 if self.enable_listener and self.listener_ref["listener"] is None:
                     self._start_listener()
             except Exception as e:
-                logger.error(f"AFK watcher error: {e}")
+                logger.error(f"Listener watcher error: {e}")
             time.sleep(5)
 
 

@@ -34,9 +34,10 @@ __all__ = [
 
 
 def register_core_tools(mcp: FastMCP) -> None:
-    """Register 19 core tools for default mode."""
+    """Register the default tool surface."""
     from .agents import (
         agent_message,
+        ensure_agent_session,
         register_agent,
         request_user_input,
         teleport_chat,
@@ -94,26 +95,30 @@ def register_core_tools(mcp: FastMCP) -> None:
         description="Get current authenticated user's profile.",
     )(get_own_user)
 
-    # Agent Communication (5)
+    # Agent Communication (6)
     mcp.tool(
         name="teleport_chat",
         description="Send message to user or channel with fuzzy name resolution.",
     )(teleport_chat)
     mcp.tool(
         name="register_agent",
-        description="Register agent instance for tracking and communication.",
+        description="Register or update a stable agent profile for Zulip control.",
     )(register_agent)
     mcp.tool(
+        name="ensure_agent_session",
+        description="Create or refresh the Zulip topic binding for an agent session.",
+    )(ensure_agent_session)
+    mcp.tool(
         name="agent_message",
-        description="Send agent notification via Agents-Channel.",
+        description="Send a session-scoped message into the bound Zulip topic.",
     )(agent_message)
     mcp.tool(
         name="request_user_input",
-        description="Request interactive input from user with options.",
+        description="Request a question or approval response from the owner in-topic.",
     )(request_user_input)
     mcp.tool(
         name="wait_for_response",
-        description="Wait for user reply to an input request.",
+        description="Wait for a persisted agent request response.",
     )(wait_for_response)
 
     # System & Flags (3)
@@ -121,9 +126,9 @@ def register_core_tools(mcp: FastMCP) -> None:
         name="switch_identity",
         description="Switch between user and bot identities.",
     )(switch_identity)
-    mcp.tool(
-        name="server_info", description="Get server version and capabilities."
-    )(server_info)
+    mcp.tool(name="server_info", description="Get server version and capabilities.")(
+        server_info
+    )
     mcp.tool(
         name="manage_message_flags",
         description="Mark messages as read/unread or star/unstar.",
@@ -137,8 +142,9 @@ def register_extended_tools(mcp: FastMCP) -> None:
     Core tools are already registered; this adds the rest.
     """
     from .agents import (
-        afk_mode,
+        close_agent_session,
         list_instances,
+        list_sessions,
         manage_task,
         poll_agent_events,
         send_agent_status,
@@ -180,38 +186,38 @@ def register_extended_tools(mcp: FastMCP) -> None:
 
     # Users — merged + remaining (9)
     mcp.tool(name="get_user", description="Look up a user by ID or email.")(get_user)
-    mcp.tool(
-        name="get_user_status", description="Get user's status text and emoji."
-    )(get_user_status)
+    mcp.tool(name="get_user_status", description="Get user's status text and emoji.")(
+        get_user_status
+    )
     mcp.tool(name="update_status", description="Update your own status and emoji.")(
         update_status
     )
     mcp.tool(
         name="get_user_presence", description="Get presence info for a specific user."
     )(get_user_presence)
-    mcp.tool(
-        name="get_presence", description="Get presence info for all users."
-    )(get_presence)
+    mcp.tool(name="get_presence", description="Get presence info for all users.")(
+        get_presence
+    )
     mcp.tool(name="get_user_groups", description="Get all user groups.")(
         get_user_groups
     )
-    mcp.tool(
-        name="get_user_group_members", description="Get members of a user group."
-    )(get_user_group_members)
-    mcp.tool(
-        name="is_user_group_member", description="Check if user is in a group."
-    )(is_user_group_member)
-    mcp.tool(
-        name="manage_user_mute", description="Mute or unmute a user."
-    )(manage_user_mute)
+    mcp.tool(name="get_user_group_members", description="Get members of a user group.")(
+        get_user_group_members
+    )
+    mcp.tool(name="is_user_group_member", description="Check if user is in a group.")(
+        is_user_group_member
+    )
+    mcp.tool(name="manage_user_mute", description="Mute or unmute a user.")(
+        manage_user_mute
+    )
 
     # Messaging (2)
-    mcp.tool(
-        name="cross_post_message", description="Share a message across streams."
-    )(cross_post_message)
-    mcp.tool(
-        name="toggle_reaction", description="Add or remove an emoji reaction."
-    )(toggle_reaction)
+    mcp.tool(name="cross_post_message", description="Share a message across streams.")(
+        cross_post_message
+    )
+    mcp.tool(name="toggle_reaction", description="Add or remove an emoji reaction.")(
+        toggle_reaction
+    )
 
     # Search (3)
     mcp.tool(
@@ -227,9 +233,9 @@ def register_extended_tools(mcp: FastMCP) -> None:
     )(check_messages_match_narrow)
 
     # Scheduled Messages (2)
-    mcp.tool(
-        name="get_scheduled_messages", description="Get all scheduled messages."
-    )(get_scheduled_messages)
+    mcp.tool(name="get_scheduled_messages", description="Get all scheduled messages.")(
+        get_scheduled_messages
+    )
     mcp.tool(
         name="manage_scheduled_message",
         description="Create, update, or delete a scheduled message.",
@@ -243,7 +249,8 @@ def register_extended_tools(mcp: FastMCP) -> None:
         get_events
     )
     mcp.tool(
-        name="listen_events", description="Listen for events with auto queue management."
+        name="listen_events",
+        description="Listen for events with auto queue management.",
     )(listen_events)
     mcp.tool(name="deregister_events", description="Deregister an event queue.")(
         deregister_events
@@ -266,21 +273,26 @@ def register_extended_tools(mcp: FastMCP) -> None:
         description="Generate reports using LLM analysis.",
     )(intelligent_report_generator)
 
-    # Agent Extended (5)
-    mcp.tool(
-        name="send_agent_status", description="Send agent status update."
-    )(send_agent_status)
+    # Agent Extended
+    mcp.tool(name="send_agent_status", description="Send agent status update.")(
+        send_agent_status
+    )
     mcp.tool(name="manage_task", description="Start, update, or complete a task.")(
         manage_task
     )
-    mcp.tool(name="list_instances", description="List registered agent instances.")(
-        list_instances
+    mcp.tool(name="list_sessions", description="List known agent sessions.")(
+        list_sessions
     )
     mcp.tool(
-        name="afk_mode", description="Enable, disable, or check AFK mode."
-    )(afk_mode)
+        name="list_instances", description="Compatibility alias for listing sessions."
+    )(list_instances)
     mcp.tool(
-        name="poll_agent_events", description="Poll unacknowledged agent events."
+        name="close_agent_session",
+        description="Close a session binding and optionally announce the result.",
+    )(close_agent_session)
+    mcp.tool(
+        name="poll_agent_events",
+        description="Poll unacknowledged inbound session events.",
     )(poll_agent_events)
 
     # Files (2)
@@ -299,9 +311,9 @@ def register_extended_tools(mcp: FastMCP) -> None:
     mcp.tool(name="execute_chain", description="Execute a command chain workflow.")(
         execute_chain
     )
-    mcp.tool(
-        name="list_command_types", description="List available command types."
-    )(list_command_types)
+    mcp.tool(name="list_command_types", description="List available command types.")(
+        list_command_types
+    )
 
     # Raw flag API for power users (1)
     mcp.tool(

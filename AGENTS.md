@@ -49,14 +49,13 @@ async def analyze_stream_with_llm(stream_name: str, ctx: Context | None = None) 
 
 ### Bidirectional Agent Communication (v0.4+)
 Full agent-to-user messaging pipeline available in `src/zulipchat_mcp/tools/agents.py`:
-- `register_agent()` - Create agent instance with database persistence
-- `agent_message()` - Send message to user (respects AFK mode)
-- `request_user_input()` - Interactive questions with routing (DM, stream, Agents-Channel)
-- `wait_for_response()` - Synchronous polling for user responses
-- `enable_afk_mode()` - Background listener activation
-- `disable_afk_mode()` - Normal operation mode
-
-Use `ZULIP_DEV_NOTIFY=1` environment variable to bypass AFK gating during development.
+- `register_agent()` - Register a stable agent profile
+- `ensure_agent_session()` - Bind a Zulip topic to a live agent session
+- `agent_message()` - Send session-scoped messages or lifecycle updates
+- `request_user_input()` - Persist in-topic questions or approvals
+- `wait_for_response()` - Synchronous polling for persisted responses
+- `poll_agent_events()` - Read owner steering/command events from the session topic
+- `zulipchat-mcp-hook` - Bridge Claude Code hook events into the same session model
 
 ### Emoji Registry (v0.4+)
 New `src/zulipchat_mcp/core/emoji_registry.py` enforces approved emoji for agent reactions:

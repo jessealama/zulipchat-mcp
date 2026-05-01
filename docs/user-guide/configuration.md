@@ -60,7 +60,8 @@ Note: listener services are started automatically in v0.6.0. The `--enable-liste
 - `ZULIPCHAT_EXTENDED_TOOLS=1`: enable extended tool registration
 - `MCP_DEBUG=true`: debug logging
 - `MCP_PORT=3000`: internal port metadata value
-- `ZULIP_DEV_NOTIFY=1`: bypass AFK notification gating for agent tools
+- `ZULIPCHAT_AGENT_STREAM=<stream>`: override the default control stream used for agent session topics
+- `ZULIPCHAT_APPROVAL_TIMEOUT=<seconds>`: timeout for Claude hook approval waits
 
 ## Configuration precedence
 

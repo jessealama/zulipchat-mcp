@@ -82,6 +82,7 @@ Changelog = "https://github.com/akougkas/zulipchat-mcp/releases"
 zulipchat-mcp = "zulipchat_mcp.server:main"
 zulipchat-mcp-integrate = "zulipchat_mcp.integrations.registry:main"
 zulipchat-mcp-setup = "zulipchat_mcp.setup_wizard:main"
+zulipchat-mcp-hook = "zulipchat_mcp.claude_hooks:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/zulipchat_mcp"]

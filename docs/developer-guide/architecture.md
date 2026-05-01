@@ -1,6 +1,6 @@
 # Architecture Overview
 
-ZulipChat MCP v0.6.0 is organized around a small default tool surface and optional extended tooling.
+ZulipChat MCP is organized around a compact default tool surface, optional extended tooling, and a DuckDB-backed agent control plane for Zulip-bound sessions.
 
 ## Top-level modules
 
@@ -24,8 +24,8 @@ src/zulipchat_mcp/
 
 This produces:
 
-- Core mode: 19 tools
-- Extended mode: 55 tools
+- Core mode: 20 tools
+- Extended mode: 56 tools
 
 ## Identity model
 
@@ -48,7 +48,15 @@ This produces:
 ## Service behavior
 
 - Listener services start through `ServiceManager`.
-- AFK gating affects agent notification tools, not all tool calls.
+- The listener persists queue state and dispatches inbound topic messages into session events.
+- Owner policy is enforced at the session-topic boundary, not via AFK state.
+
+## Agent control plane
+
+- Stable agent profiles live in DuckDB and are keyed by owner + agent type + agent name.
+- Agent sessions bind one Zulip topic to one agent runtime session.
+- Requests and approvals are persisted separately from raw inbound events.
+- `zulipchat-mcp-hook` bridges Claude Code lifecycle hooks into the same session model.
 
 ## Security-related boundaries
 

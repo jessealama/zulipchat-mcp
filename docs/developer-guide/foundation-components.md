@@ -32,10 +32,17 @@
 
 ## Services (`core/service_manager.py`, `services/`)
 
-- Listener and AFK watcher behavior lives in service layer.
-- Agent communication tooling uses persistent DuckDB-backed state.
+- Listener startup/supervision lives in the service layer.
+- Inbound topic messages are classified into session events and owner-policy decisions.
+- Agent communication tooling uses persistent DuckDB-backed state shared with the Claude hook bridge.
+
+## Agent control plane (`core/agent_control.py`, `core/agent_protocol.py`)
+
+- Stable agent profiles and topic bindings are coordinated outside the tool layer.
+- Shared parsing helpers classify topic replies into steering, command, and approval events.
+- Session lifecycle messages use a consistent topic format and owner-controlled request flow.
 
 ## Tool registration (`tools/__init__.py`)
 
-- `register_core_tools` defines the 19-tool baseline.
+- `register_core_tools` defines the 20-tool baseline.
 - `register_extended_tools` appends the extended tool set.
