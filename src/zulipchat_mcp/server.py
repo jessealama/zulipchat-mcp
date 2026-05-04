@@ -136,7 +136,6 @@ def main() -> None:
             "updates, request approvals, and read steering commands from the topic owner."
         ),
         on_duplicate="warn",
-        tasks=True,
         sampling_handler=sampling_handler,
         sampling_handler_behavior="fallback",  # Use only when client doesn't support sampling
     )
